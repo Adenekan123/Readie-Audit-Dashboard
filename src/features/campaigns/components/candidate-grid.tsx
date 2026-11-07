@@ -71,7 +71,7 @@ export function CandidateGrid({ rows, campaignId }: { rows: CandidateSession[]; 
             </div>
           </div>
           <div className="candidate-actions">
-            <Link className="primary" to={getRoomPath(row.roomName, 'integrity')}>
+            <Link className="primary" to={getRoomPath(row.roomName)}>
               Review assessment<ChevronRight aria-hidden="true" size={18} strokeWidth={2} />
             </Link>
           </div>
