@@ -1249,6 +1249,8 @@ html,body,.app,.app *,dialog *{font-family:"Geist Variable",Inter,-apple-system,
 .mobile-status-filters{display:none}
 @media(max-width:700px){
   .desktop-filter-controls{display:none}
+  .stats{grid-template-columns:minmax(0,1fr);gap:8px}
+  .stat{height:78px;min-height:78px;padding:10px 14px}
   .sessions{overflow:visible!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
   .candidate-card-header .candidate-avatar{display:none}
   .candidate-person{gap:0}
