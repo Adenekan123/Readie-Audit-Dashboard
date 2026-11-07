@@ -1,5 +1,6 @@
 import { apiClient } from '@/api/client'
-import { getOfflineRoomEvaluation, isOfflineMockApiEnabled } from '@/api/mock-adapter'
+import { getApiMode } from '@/api/api-mode'
+import { getOfflineRoomEvaluation } from '@/api/mock-adapter'
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
 
@@ -82,7 +83,7 @@ export interface RoomEvaluation {
 export type RoomEvaluationResponse = RoomEvaluation[]
 
 export async function getRoomEvaluation(roomName: string, signal?: AbortSignal): Promise<RoomEvaluationResponse> {
-  if (isOfflineMockApiEnabled()) return getOfflineRoomEvaluation(roomName, signal)
+  if (getApiMode() === 'local') return getOfflineRoomEvaluation(roomName, signal)
 
   const response = await apiClient.get<RoomEvaluationResponse>(
     `roomsHACKATHON/${encodeURIComponent(roomName)}`,

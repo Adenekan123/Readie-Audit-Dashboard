@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowUpDown, Clock3, LayoutGrid, Search, ShieldAlert, ShieldCheck, Table2, UsersRound } from 'lucide-react'
+import { ArrowUpDown, Clock3, Filter, LayoutGrid, Search, ShieldAlert, ShieldCheck, Table2, UsersRound, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,6 +39,87 @@ function SummaryIcon({ kind }: { kind: SummaryIconKind }) {
   return <Icon aria-hidden="true" className="stat-icon" strokeWidth={1.5} />
 }
 
+function CampaignStatusFilter({
+  className = '',
+  countForStatus,
+  onStatusChange,
+  statusFilter,
+}: {
+  className?: string
+  countForStatus: (status: StatusFilter) => number
+  onStatusChange: (value: StatusFilter) => void
+  statusFilter: StatusFilter
+}) {
+  return (
+    <Tabs className={`status-filter-root ${className}`} onValueChange={(value) => onStatusChange(value === 'all' ? '' : value as CandidateStatus)} value={statusFilter || 'all'}>
+      <TabsList aria-label="Filter assessments by status" className="status-tabs" variant="line">
+        {statusOptions.map((option) => (
+          <TabsTrigger className={`status-tab ${option.tone}`} key={option.label} value={option.value || 'all'}>
+            <span aria-hidden="true" className="status-dot" />{option.label}<span className="status-tab-count">{countForStatus(option.value)}</span>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  )
+}
+
+function CampaignFilterControls({
+  campaignId,
+  countForStatus,
+  emailQuery,
+  layout,
+  onEmailChange,
+  onLayoutChange,
+  onSortChange,
+  onStatusChange,
+  showLayout = true,
+  showSearch = true,
+  showStatus = true,
+  sortOrder,
+  statusFilter,
+}: {
+  campaignId: CampaignId
+  countForStatus: (status: StatusFilter) => number
+  emailQuery: string
+  layout: AssessmentLayout
+  onEmailChange: (value: string) => void
+  onLayoutChange: (value: AssessmentLayout) => void
+  onSortChange: (value: SortOrder) => void
+  onStatusChange: (value: StatusFilter) => void
+  showLayout?: boolean
+  showSearch?: boolean
+  showStatus?: boolean
+  sortOrder: SortOrder
+  statusFilter: StatusFilter
+}) {
+  return (
+    <>
+      <div className="toolbar">
+        {showSearch && <label className="search">
+          <Input aria-label="Search candidate email" autoComplete="off" className="search-input" onChange={(event) => onEmailChange(event.target.value)} placeholder="Search candidate email…" type="search" value={emailQuery} />
+          <span aria-hidden="true"><Search strokeWidth={1.7} /></span>
+        </label>}
+        <CampaignSwitcher campaignId={campaignId} />
+        <div className="filter-control sort-inline">
+          <ArrowUpDown aria-hidden="true" strokeWidth={1.7} />
+          <Select value={sortOrder} onValueChange={(value) => onSortChange(value as SortOrder)}>
+            <SelectTrigger aria-label="Sort assessments by submission date" className="control-select-trigger"><SelectValue /></SelectTrigger>
+            <SelectContent align="start" className="dashboard-select-content" position="popper" side="bottom">
+              <SelectItem className="dashboard-select-item" value="newest">Newest first</SelectItem>
+              <SelectItem className="dashboard-select-item" value="oldest">Oldest first</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {showLayout && <div aria-label="Assessment layout" className="layout-switch" role="group">
+          <Button aria-label="Grid view" aria-pressed={layout === 'grid'} onClick={() => onLayoutChange('grid')} type="button" variant="ghost"><LayoutGrid aria-hidden="true" />Grid</Button>
+          <Button aria-label="Table view" aria-pressed={layout === 'table'} onClick={() => onLayoutChange('table')} type="button" variant="ghost"><Table2 aria-hidden="true" />Table</Button>
+        </div>}
+      </div>
+      {showStatus && <CampaignStatusFilter countForStatus={countForStatus} onStatusChange={onStatusChange} statusFilter={statusFilter} />}
+    </>
+  )
+}
+
 export function CampaignPage({ campaignId }: { campaignId: CampaignId }) {
   const jobsQuery = useGetCampaignJobs(campaignId, { retry: false })
   const candidates = useMemo(
@@ -49,6 +130,8 @@ export function CampaignPage({ campaignId }: { campaignId: CampaignId }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('')
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
   const [layout, setLayout] = useState<AssessmentLayout>('table')
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 700px)').matches)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [paginationReset, setPaginationReset] = useState(false)
   const [pageSize, setPageSize] = useState(5)
   const [gridPage, setGridPage] = useState(1)
@@ -61,6 +144,31 @@ export function CampaignPage({ campaignId }: { campaignId: CampaignId }) {
     setPaginationReset((current) => !current)
     setGridPage(1)
   }, [campaignId])
+
+  useEffect(() => {
+    const mobileBreakpoint = window.matchMedia('(max-width: 700px)')
+    const updateMobileLayout = (event: MediaQueryListEvent) => setIsMobile(event.matches)
+    mobileBreakpoint.addEventListener('change', updateMobileLayout)
+    return () => mobileBreakpoint.removeEventListener('change', updateMobileLayout)
+  }, [])
+
+  useEffect(() => {
+    if (isMobile) setGridPage(1)
+  }, [isMobile])
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) return
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileFiltersOpen(false)
+    }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [mobileFiltersOpen])
 
   const filteredCandidates = useMemo(() => {
     const query = emailQuery.trim().toLowerCase()
@@ -121,66 +229,70 @@ export function CampaignPage({ campaignId }: { campaignId: CampaignId }) {
           </div>
         </div>
 
-        <div className="toolbar">
-          <label className="search">
+        <div className="desktop-filter-controls">
+          <CampaignFilterControls
+            campaignId={campaignId}
+            countForStatus={countForStatus}
+            emailQuery={emailQuery}
+            layout={layout}
+            onEmailChange={(value) => { setEmailQuery(value); resetPagination() }}
+            onLayoutChange={setLayout}
+            onSortChange={(value) => { setSortOrder(value); resetPagination() }}
+            onStatusChange={(value) => { setStatusFilter(value); resetPagination() }}
+            sortOrder={sortOrder}
+            statusFilter={statusFilter}
+          />
+        </div>
+        <div className="mobile-filter-launch">
+          <label className="search mobile-inline-search">
             <Input
               aria-label="Search candidate email"
               autoComplete="off"
-              className="search-input"
-              onChange={(event) => {
-                setEmailQuery(event.target.value)
-                resetPagination()
-              }}
+              onChange={(event) => { setEmailQuery(event.target.value); resetPagination() }}
               placeholder="Search candidate email…"
               type="search"
               value={emailQuery}
             />
             <span aria-hidden="true"><Search strokeWidth={1.7} /></span>
           </label>
-
-          <CampaignSwitcher campaignId={campaignId} />
-
-          <div className="filter-control sort-inline">
-            <ArrowUpDown aria-hidden="true" strokeWidth={1.7} />
-            <Select value={sortOrder} onValueChange={(value) => { setSortOrder(value as SortOrder); resetPagination() }}>
-              <SelectTrigger aria-label="Sort assessments by submission date" className="control-select-trigger">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent align="start" avoidCollisions={false} className="dashboard-select-content" position="popper" side="bottom">
-                <SelectItem className="dashboard-select-item" value="newest">Newest first</SelectItem>
-                <SelectItem className="dashboard-select-item" value="oldest">Oldest first</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div aria-label="Assessment layout" className="layout-switch" role="group">
-            <Button aria-label="Grid view" aria-pressed={layout === 'grid'} onClick={() => setLayout('grid')} type="button" variant="ghost">
-              <LayoutGrid aria-hidden="true" />Grid
-            </Button>
-            <Button aria-label="Table view" aria-pressed={layout === 'table'} onClick={() => setLayout('table')} type="button" variant="ghost">
-              <Table2 aria-hidden="true" />Table
-            </Button>
-          </div>
+          <Button aria-label="Open filters" className="mobile-filter-trigger" onClick={() => setMobileFiltersOpen(true)} type="button" variant="outline">
+            <Filter aria-hidden="true" size={17} />Filters
+          </Button>
         </div>
-
-        <Tabs
-          className="status-filter-root"
-          onValueChange={(value) => {
-            setStatusFilter(value === 'all' ? '' : value as CandidateStatus)
-            resetPagination()
-          }}
-          value={statusFilter || 'all'}
-        >
-          <TabsList aria-label="Filter assessments by status" className="status-tabs" variant="line">
-            {statusOptions.map((option) => (
-              <TabsTrigger className={`status-tab ${option.tone}`} key={option.label} value={option.value || 'all'}>
-                <span aria-hidden="true" className="status-dot" />
-                {option.label}
-                <span className="status-tab-count">{countForStatus(option.value)}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        {mobileFiltersOpen && (
+          <div className="mobile-filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setMobileFiltersOpen(false) }}>
+            <section aria-labelledby="mobile-filter-title" aria-modal="true" className="mobile-filter-sheet" role="dialog">
+              <header className="mobile-filter-header">
+                <div><h2 id="mobile-filter-title">Campaign filters</h2><p>Choose a campaign and sort order.</p></div>
+                <Button aria-label="Close filters" onClick={() => setMobileFiltersOpen(false)} size="icon" type="button" variant="ghost"><X aria-hidden="true" size={20} /></Button>
+              </header>
+              <CampaignFilterControls
+                campaignId={campaignId}
+                countForStatus={countForStatus}
+                emailQuery={emailQuery}
+                layout={layout}
+                onEmailChange={(value) => { setEmailQuery(value); resetPagination() }}
+                onLayoutChange={setLayout}
+                onSortChange={(value) => { setSortOrder(value); resetPagination() }}
+                onStatusChange={(value) => { setStatusFilter(value); resetPagination() }}
+                showLayout={false}
+                showSearch={false}
+                showStatus={false}
+                sortOrder={sortOrder}
+                statusFilter={statusFilter}
+              />
+              <Button className="mobile-filter-apply" onClick={() => setMobileFiltersOpen(false)} type="button">Show candidates</Button>
+            </section>
+          </div>
+        )}
+        <div className="mobile-status-filters">
+          <CampaignStatusFilter
+            className="mobile-status-filter-root"
+            countForStatus={countForStatus}
+            onStatusChange={(value) => { setStatusFilter(value); resetPagination() }}
+            statusFilter={statusFilter}
+          />
+        </div>
 
         <div aria-live="polite" className="campaign-results" id="results">
           {jobsQuery.isPending ? (
@@ -195,7 +307,7 @@ export function CampaignPage({ campaignId }: { campaignId: CampaignId }) {
             <NoAssessmentSessions campaignId={campaignId} />
           ) : filteredCandidates.length === 0 ? (
             <div className="notice"><h3>No matching candidates</h3><p>Try another email or choose a different status.</p></div>
-          ) : layout === 'table' ? (
+          ) : layout === 'table' && !isMobile ? (
             <AssessmentTable
               onRowsPerPageChange={setPageSize}
               paginationResetDefaultPage={paginationReset}

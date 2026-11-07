@@ -1,5 +1,6 @@
 import { apiClient } from '@/api/client'
-import { getOfflineCampaignJobs, isOfflineMockApiEnabled } from '@/api/mock-adapter'
+import { getApiMode } from '@/api/api-mode'
+import { getOfflineCampaignJobs } from '@/api/mock-adapter'
 
 export interface CampaignAssessmentVideoLink {
   created_at: string
@@ -39,7 +40,7 @@ export interface CampaignJob {
 export type CampaignJobsResponse = CampaignJob[]
 
 export async function getCampaignJobs(campaignId: string, signal?: AbortSignal): Promise<CampaignJobsResponse> {
-  if (isOfflineMockApiEnabled()) return getOfflineCampaignJobs(campaignId, signal)
+  if (getApiMode() === 'local') return getOfflineCampaignJobs(campaignId, signal)
 
   const response = await apiClient.get<CampaignJobsResponse>(
     `campaignHACKATHON/${encodeURIComponent(campaignId)}`,

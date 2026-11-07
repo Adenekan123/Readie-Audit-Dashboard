@@ -29,7 +29,7 @@ The app opens the most recently viewed campaign, defaulting to campaign 119 on f
 ## API foundation
 
 - Configure `VITE_API_BASE_URL`, `VITE_API_MY_AUTHORIZATIONX`, and `VITE_API_AUTHORIZATION` in a local `.env` file using `.env.example` as a template.
-- The app uses the live API by default. Set `VITE_USE_MOCK_API=true` in `.env` to use the isolated offline API adapter for campaigns 119, 120, 122, and 123; the mock flag defaults to false.
+- The header's Live/Local switch controls the data source. Live is the default; Local uses the isolated offline API adapter for campaigns 119, 120, 122, and 123, and the selection persists in browser storage.
 - Vite proxies `/api` during development. `vercel.json` proxies `/api` to the Readie API on Vercel and rewrites client-side routes to `index.html`, so direct campaign and room URLs load after refresh. Configure the API credential variables in Vercel project settings for deployments.
 - `src/api/client.ts` provides the shared Axios instance and sends `Content-Type: application/json`, `MyAuthorizationx`, and `Authorization: Basic ...` on requests.
 - Raw request functions live in `src/api`. `useApiQuery` and `useApiMutation` in `src/hooks/custom` provide shared TanStack Query behavior, while endpoint-specific hooks in `src/hooks/api` call those request functions.

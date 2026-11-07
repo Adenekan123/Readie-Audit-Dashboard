@@ -25,7 +25,7 @@ export function CampaignSwitcher({ campaignId }: { campaignId: CampaignId }) {
         <SelectTrigger aria-label="Switch campaign" className="control-select-trigger">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent align="start" avoidCollisions={false} className="dashboard-select-content" position="popper" side="bottom">
+        <SelectContent align="start" className="dashboard-select-content" position="popper" side="bottom">
           {campaignOptions.map((id) => (
             <SelectItem className="dashboard-select-item" key={id} value={id}>Campaign {id}</SelectItem>
           ))}

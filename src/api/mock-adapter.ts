@@ -204,10 +204,6 @@ function throwIfAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('The request was aborted.', 'AbortError')
 }
 
-export function isOfflineMockApiEnabled() {
-  return import.meta.env.VITE_USE_MOCK_API?.trim().toLowerCase() === 'true'
-}
-
 export function getOfflineCampaignJobs(campaignId: string, signal?: AbortSignal): CampaignJobsResponse {
   throwIfAborted(signal)
   if (!supportedCampaignIds.includes(campaignId as (typeof supportedCampaignIds)[number])) return []
