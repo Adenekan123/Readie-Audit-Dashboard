@@ -1187,6 +1187,7 @@ html,body,.app,.app *,dialog *{font-family:"Geist Variable",Inter,-apple-system,
 .api-mode-option:not(.is-active):hover{background:#f7f5fa;color:#4e465b}
 @media(max-width:550px){.topbar{height:auto;min-height:60px;padding:8px 12px;gap:8px}.crumb{min-width:0;gap:6px;font-size:11px}.crumb>span[aria-hidden="true"],.crumb strong{display:none}.api-mode-toggle{flex:0 0 auto;padding:3px}.api-mode-option{min-height:32px;padding:0 8px;gap:5px;font-size:11px}}
 .room-tabs .tabs [data-slot="tabs-trigger"]{gap:9px;font-size:16px}
+.room-tabs .tabs [data-slot="tabs-trigger"]::after{background-color:#a277df!important}
 .room-tabs .tabs [data-slot="tabs-trigger"]>svg{width:18px;height:18px;flex:0 0 18px;color:currentColor;stroke-width:1.8}
 .room-tabs .tabs [data-slot="tabs-trigger"] small{font-size:12px}
 .diagnostic .section-heading h2{font-size:23px}
