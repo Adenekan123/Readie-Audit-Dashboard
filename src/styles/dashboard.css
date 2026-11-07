@@ -1226,7 +1226,7 @@ html,body,.app,.app *,dialog *{font-family:"Geist Variable",Inter,-apple-system,
 
 /* The three room sections fit in the phone viewport without a clipped tab. */
 @media(max-width:600px){
-  .room-tabs>.tabs[data-slot="tabs-list"]{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:3px!important;margin:14px 0 12px;padding:5px!important;overflow:visible!important}
+  .room-tabs>.tabs[data-slot="tabs-list"]{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:3px!important;margin:14px 0 12px;padding:5px 5px 0!important;overflow:visible!important;border-bottom-left-radius:0;border-bottom-right-radius:0}
   .room-tabs .tabs [data-slot="tabs-trigger"]{min-width:0;min-height:58px;height:auto;justify-content:center;flex-wrap:wrap;gap:4px;padding:8px 4px!important;border-bottom-width:2px;font-size:12px;line-height:1.3;text-align:center;white-space:normal}
   .room-tabs .tabs [data-slot="tabs-trigger"]>svg{width:15px;height:15px;flex:0 0 15px}
   .room-tabs .tabs [data-slot="tabs-trigger"] small{display:none}
