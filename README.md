@@ -11,6 +11,10 @@ npm run dev
 
 Create a production build with `npm run build`.
 
+## Tests
+
+Run the unit tests once with `npm test`, or keep the test runner open while editing with `npm run test:watch`. Tests live in `tests/` and use Vitest with the same `@` source alias as the app.
+
 ## App structure
 
 - Vite + React + TypeScript
